@@ -11,7 +11,7 @@ const TermsConditions = () => {
   return (
     <SafeAreaView style={styles.screen}>
         <ScrollView>
-        <Text style={styles.heading}>TermsConditions</Text>
+        <Text style={styles.heading}>{toc.desc}</Text>
         <Text style={styles.desc}>{toc.desc}</Text>
 
        <AppButton
