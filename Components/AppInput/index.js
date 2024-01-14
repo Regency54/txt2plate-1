@@ -36,17 +36,6 @@ export default function AppInput({
   return (
     <View style={[styles.inputContainer, inputContainer]}>
       <>
-        {isPass ? (
-          <TouchableOpacity onPress={() => setVisible(!visible)}>
-            <Ionicons
-              name={visible ? 'eye-outline' : 'eye-off-outline'}
-              color={Colors.WHITE}
-              size={22}
-            />
-          </TouchableOpacity>
-        ) : (
-          <></>
-        )}
 
         {isIcon ? (
           <TouchableOpacity>
@@ -82,6 +71,17 @@ export default function AppInput({
           {errorText}
         </Text>
       ) : null}
+       {isPass ? (
+          <TouchableOpacity onPress={() => setVisible(!visible)}>
+            <Ionicons
+              name={visible ? 'eye-outline' : 'eye-off-outline'}
+              color={Colors.TEXT_COLOR}
+              size={22}
+            />
+          </TouchableOpacity>
+        ) : (
+          <></>
+        )}
 
       {isText ? (
         <TouchableOpacity onPress={onBtnPress}>

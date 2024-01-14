@@ -3,13 +3,24 @@ import React from 'react'
 import Colors from '../../../../Constants/Colors'
 import { hp } from '../../../../Constants/constant'
 import { toc } from '../../../../Constants/Appdata'
+import AppButton from '../../../../Components/AppButton'
+import { useNavigation } from '@react-navigation/native'
 
 const TermsConditions = () => {
+    const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.screen}>
         <ScrollView>
         <Text style={styles.heading}>TermsConditions</Text>
         <Text style={styles.desc}>{toc.desc}</Text>
+
+       <AppButton
+       title={"Accept"}
+       containerStyle={{alignSelf:'center'}}
+       onPress={()=>{
+         navigation.goBack();
+       }}
+       />
 
         </ScrollView>
     </SafeAreaView>
