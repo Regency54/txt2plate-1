@@ -6,6 +6,9 @@ const Routes = {
     PROFILE: 'Profile',
     TERMS_CONDITIONS: 'TermsConditions',
     SPLASH: 'SplashScreen',
+    INBOX: 'InboxScreen',
+    SENT: 'SentScreen',
+    DrawerScreen: 'Drawer',
   };
   
   export default Routes;

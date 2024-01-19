@@ -170,6 +170,7 @@ const SignIn = () => {
               onChange={text => setEmail(text)}
               isError={emailError}
               errorText={errorText}
+              cap={'none'}
             />
             <AppInput
               isIcon={true}
@@ -182,6 +183,7 @@ const SignIn = () => {
               isError={passError}
               errorText={passErrorText}
               secureTextEntry={true}
+              cap={'none'}
 
             />
             <View>

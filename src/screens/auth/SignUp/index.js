@@ -126,17 +126,17 @@ const SignUp = () => {
     } else if (password.length < 6) {
       setPassError(true);
       setTextPassError(AppStrings.PASSWORD_ERROR);
-      return
+      return;
     } else if (confirmPassword === '') {
       setCpassError(true);
       setCpassTextError(AppStrings.FIELD_REQUIRED);
-      return
+      return;
     } else if (password !== confirmPassword) {
       setPassError(true);
       setTextPassError(AppStrings.PASSWORD_ERROR);
       setCpassError(true);
       setCpassTextError(AppStrings.PASSWORD_ERROR);
-      return
+      return;
     } else {
       setPassError(false);
       setCpassError(false);
@@ -145,90 +145,143 @@ const SignUp = () => {
     }
 
     if (!isChecked) {
-      setTitle('Error')
-      setErrorType('1')
-      setAlertText(AppStrings.TOC_ERROR)
+      setTitle('Error');
+      setErrorType('1');
+      setAlertText(AppStrings.TOC_ERROR);
       setAlert(true);
       return;
     }
-    if (username && email && country && vehicleReg && password) {
-     try {
-      setLoading(true);
-      auth()
-        .createUserWithEmailAndPassword(email, password)
-        .then(res => {
-          let userId = res?.user?.uid;
-          // firestore
-          const usersCollection = firestore()
-            .collection(FirebaseSchema.user)
-            .doc(userId);
-          const userData = {
-            uid: userId,
-            username: username,
-            email: email.toLowerCase(),
-            country: country,
-            vehicl_number: vehicleReg,
-          };
-          usersCollection
-            .set(userData)
-            .then(() => {
-              auth()
-              .currentUser
-              .sendEmailVerification()
-              .then(()=>{
+
+    const usersColRef = firestore().collection(FirebaseSchema.user);
+    usersColRef
+      .where('username', '==', username)
+      .get()
+      .then(querySnapshot => {
+        if (querySnapshot.empty) {
+          usersColRef
+            .where('vehicle_number', '==', vehicleReg)
+            .get()
+            .then(querySnapshot2 => {
+              if (querySnapshot2.empty) {
+                if (username && email && country && vehicleReg && password) {
+                  try {
+                    setLoading(true);
+                    auth()
+                      .createUserWithEmailAndPassword(email, password)
+                      .then(res => {
+                        let userId = res?.user?.uid;
+                        // firestore
+                        const usersCollection = firestore()
+                          .collection(FirebaseSchema.user)
+                          .doc(userId);
+                        const userData = {
+                          uid: userId,
+                          username: username,
+                          email: email.toLowerCase(),
+                          country: country,
+                          vehicle_number: vehicleReg,
+                        };
+                        usersCollection
+                          .set(userData)
+                          .then(() => {
+                            auth()
+                              .currentUser.sendEmailVerification()
+                              .then(() => {
+                                setLoading(false);
+                                setTitle('Success');
+                                setAlert(true);
+                                setErrorType('3');
+                                setAlertText(AppStrings.EMAIL_VERFICATION_TEXT);
+                              })
+                              .catch(error => {
+                                setLoading(false);
+                                setAlert(true);
+                                setErrorType('0');
+                                setAlertText(AppStrings.EMAIL_VERFICATION_TEXT);
+                                console.log(
+                                  'email verification error ' +
+                                    JSON.stringify(error),
+                                );
+                              });
+                          })
+                          .catch(error => {
+                            setLoading(false);
+                            setTitle('Error');
+                            setErrorType('0');
+                            setAlert(true);
+                            setAlertText(AppStrings.WRONG_TEXT);
+                            console.error(
+                              'Error adding data to user document:',
+                              error,
+                            );
+                          });
+                      })
+                      .catch(error => {
+                        if (error.code === 'auth/email-already-in-use') {
+                          setLoading(false);
+                          Toast.show({
+                            type: 'error',
+                            text1: 'Error',
+                            text2: 'That email address is already in use!',
+                          });
+                        }
+                        if (error.code === 'auth/invalid-email') {
+                          setLoading(false);
+                          Toast.show({
+                            type: 'error',
+                            text1: 'Error',
+                            text2: 'That email address is invalid!',
+                          });
+                        }
+                        if (error.code === 'auth/weak-password') {
+                          setLoading(false);
+                          Toast.show({
+                            type: 'error',
+                            text1: 'Error',
+                            text2: 'Password must be at least 6 characters',
+                          });
+                        }
+                      });
+                  } catch (error) {
+                    console.log('Error ' + error);
+                  }
+                }
+              } else {
                 setLoading(false);
-                setTitle('Success')
-                setAlert(true);
-                setErrorType('3');
-                setAlertText(AppStrings.EMAIL_VERFICATION_TEXT)
-              })
-              .catch((error)=>{
-                setLoading(false);
-                setAlert(true);
-                setErrorType('0');
-                setAlertText(AppStrings.EMAIL_VERFICATION_TEXT);
-                console.log("email verification error "+JSON.stringify(error));
-              });
+                Toast.show({
+                  type: 'error',
+                  text1: 'Error',
+                  text2: AppStrings.VEHICLE,
+                });
+              }
             })
-            .catch(error => {
+            .catch(err => {
               setLoading(false);
-              setTitle('Error')
-              setErrorType('0')
-              setAlert(true);
-              setAlertText(AppStrings.WRONG_TEXT)
-              console.error('Error adding data to user document:', error);
+              Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: AppStrings.VEHICLE,
+              });
+              console.log('Error getting documents: ', err);
             });
-        })
-        .catch(error => {
-            if (error.code === 'auth/email-already-in-use') {
-              setLoading(false);
-              Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'That email address is already in use!',
-              });
-            }
-            if (error.code === 'auth/invalid-email') {
-              setLoading(false);
-              Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'That email address is invalid!',
-              });
-            }
-            if (error.code === 'auth/weak-password') {
-              setLoading(false);
-              Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'Password must be at least 6 characters',
-              });
-            }
+        } else {
+          setLoading(false);
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: AppStrings.USER_EXIST,
           });
-     } catch (error) {
-       console.log("Error "+error)
-     }
-    }
+        }
+      })
+      .catch(err => {
+        setLoading(false);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: AppStrings.USER_EXIST,
+        });
+        console.log('Error getting documents: ', err);
+      });
   };
 
   return (
@@ -253,6 +306,7 @@ const SignUp = () => {
             onChange={text => setUsename(text)}
             isError={usernameError}
             errorText={usernameTextError}
+            cap={'none'}
           />
 
           <AppInput
@@ -266,24 +320,24 @@ const SignUp = () => {
             isError={emailError}
             errorText={emailTextError}
             type={'email-address'}
+            cap={'none'}
           />
           <AppDropdown
           defaultValue={country}
           onChange={text => setCountry(text)}
           />
-         
-
+        
           <AppInput
             inputContainer={styles.input}
             isIcon={true}
-            iconName={'user'}
+            iconName={'car'}
             iconType={'font-awesome'}
             placeholder={'Vehicle Registeration'}
             value={vehicleReg}
-            onChange={text => setVehicleReg(text.toUpperCase())}
+            onChange={text => setVehicleReg(text.replace(/[a-z]/g, ''))}
             isError={vError}
             errorText={vTextError}
-            autoCapitalize= "characters"
+             cap={'characters'}
           />
 
           <AppInput
@@ -297,6 +351,7 @@ const SignUp = () => {
             isError={passError}
             errorText={passTextError}
             secureTextEntry={true}
+            cap={'none'}
           />
 
           <AppInput
@@ -310,6 +365,8 @@ const SignUp = () => {
             isError={cPassError}
             errorText={cPassTextError}
             secureTextEntry={true}
+            cap={'none'}
+
           /> 
           <View
             style={{

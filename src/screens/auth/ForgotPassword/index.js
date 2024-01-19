@@ -146,6 +146,7 @@ const ForgetPassword = () => {
             onChange={text => setEmail(text)}
             isError={emailError}
             errorText={emailTextError}
+            cap={'none'}
           />
           <AppButton
             textStyle={{fontSize: 14}}

@@ -30,6 +30,7 @@ export default function AppInput({
   textBtnColor,
   isError = false,
   errorText = 'Error text',
+  cap,
   ...props
 }) {
   const [visible, setVisible] = useState(isPass ? false : true);
@@ -49,7 +50,6 @@ export default function AppInput({
           placeholderTextColor={
             placeholderColor ? placeholderColor : Colors.TEXT_COLOR
           }
-          autoCapitalize='characters'
           value={value}
           onChangeText={val => onChange(val)}
           selectionColor={Colors.WHITE}
@@ -59,6 +59,7 @@ export default function AppInput({
           cursorColor={Colors.TEXT_COLOR}
           keyboardType={type}
           editable={editAble}
+          autoCapitalize={cap}
         />
       </>
       {isError ? (

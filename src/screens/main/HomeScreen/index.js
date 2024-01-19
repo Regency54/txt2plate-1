@@ -1,5 +1,13 @@
-import {StyleSheet, Text, View, Dimensions} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState,useCallback} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Dimensions,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+} from 'react-native';
 import Colors from '../../../../Constants/Colors';
 import AppButton from '../../../../Components/AppButton';
 import {useNavigation} from '@react-navigation/native';
@@ -7,56 +15,420 @@ import Routes from '../../../../utils/Routes';
 import ConfirmationDialog from '../../../../Components/ConfirmationDialog';
 import AppLoading from '../../../../Components/AppLoading';
 import auth from '@react-native-firebase/auth';
+import Icon from '../../../../Constants/Icons';
+import AppInput from '../../../../Components/AppInput';
+import {AppStrings} from '../../../../utils/AppStrings';
+import {hp} from '../../../../Constants/constant';
+import AppDropdown from '../../../../Components/AppDropdown';
+import { RadioButton } from 'react-native-paper';
+import CheckBox from 'react-native-check-box';
+import { launchImageLibrary} from 'react-native-image-picker';
+import Toast from 'react-native-toast-message';
+import storage from '@react-native-firebase/storage';
+import { FirebaseSchema } from '../../../../Database/FirebaseSchema';
+import firestore from '@react-native-firebase/firestore';
+import StorageService from '../../../../utils/StorageService';
+
+
+
+
+
+
 
 
 const HomeScreen = () => {
+  const [vTextError, setTextVerror] = useState('');
+  const [vError, setVerror] = useState(false);
+  const [vehicleReg, setVehicleReg] = useState('');
+  const [message,setMessage] = useState('');
+  const [country, setCountry] = useState('United Kingdom');
   const navigation = useNavigation();
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
-  const svgHeight = screenHeight * 0.4;
   const [isVisible, setVisible] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const [checked, setChecked] = React.useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+  const [image, setImage] = useState(null);
+  const [fileType,setFileType] = useState('');
+  const [fileText,setFileText] = useState('');
+  const [user, setUser] = useState(null);
+
+  useEffect(()=>{
+    StorageService.getItem(FirebaseSchema.user)
+    .then((retrievedObject) => {
+      if (retrievedObject) {
+        setUser(retrievedObject);
+        console.log('Retrieved object:', retrievedObject);
+      } else {
+        console.log('Object not found in AsyncStorage');
+      }
+    })
+    .catch((error) => {
+      console.error('Error retrieving object:', error);
+    });
+  },[])
+
+
+  useEffect(()=>{
+    setFileType(AppStrings.CHOOSE_FILE)
+    setFileText(AppStrings.NO_FILE_SELECTED)
+  },[])
+
+  const handleVehicleRegChange = useCallback((text) => {
+    setVehicleReg(text.toUpperCase());
+  }, []); 
+
+
+  const updatePicture = async () => {
+    console.log('updatePicture running');
+    launchImageLibrary({mediaType: 'photo'}, async response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else if (response.assets) {
+       //setLoading(true);
+        const uri = response?.assets[0]?.uri;
+        setImage(uri);
+        setFileText('Selected');
+        setFileType('Change')
+        // await uploadImageToFirebase(uri);
+
+      }
+    });
+  };
+
+  const sendMessage = ()=>{
+      
+    if (vehicleReg == '') {
+      Toast.show({
+        type: 'error',
+        text1: 'Error!',
+        text2: 'Vehicle registration number is required!',
+      });
+      return;
+    }
+    if (message == '') {
+      Toast.show({
+        type: 'error',
+        text1: 'Error!',
+        text2: 'Message is required!',
+      });
+      return;
+    }
+    if (image == null) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error!',
+        text2: 'Image is required!',
+      });
+      return;
+  }
+  setLoading(true);
+  console.log("check "+checked)
+  const usersColRefSentMessages = firestore().collection(FirebaseSchema.chats);
+  const usersColRefRecieved = firestore().collection(FirebaseSchema.user)
+  .doc(user?.uid).collection(FirebaseSchema.sentMessages);
+  const data ={
+    uid: user?.uid,
+    vehicle_number: vehicleReg,
+    message: message,
+    isReplyAllow:checked,
+    isRecieved:false,
+    username:user?.username,
+    datetime:new Date().toISOString(),
+    }
+    usersColRefRecieved.add(data)
+    .then((docRef)=>{
+      const sentId = docRef.id;
+      docRef.update({ chat_id: sentId })
+      usersColRefSentMessages
+      .doc(vehicleReg)
+      .collection(FirebaseSchema.active_chats)
+      .add(data)
+      .then((docRef)=>{
+        const id = docRef.id;
+        docRef.update({ chat_id: id })
+      uploadImageToFirebase(image,id,sentId);
+      })
+      .catch((err)=>{
+        setLoading(false);
+       console.log("Error: "+err)
+      })
+    })
+    .catch((err)=>{
+      setLoading(false);
+      console.log("Error: "+err)
+    })
+
+}
+
+  const generateUniqueFilename = () => {
+    console.log("generateUniqueFilename running");
+    const timestamp = new Date().getTime();
+    return `image_${timestamp}.jpg`;
+  };
+  const getDownloadURL = async imageName => {
+    console.log('getDownloadURL running');
+    const reference = storage().ref(`images/${imageName}`);
+    try {
+      const url = await reference.getDownloadURL();
+      return url;
+    } catch (error) {
+      setLoading(false);
+      console.error('Error getting download URL: ', error);
+      return null;
+    }
+  };
+  const uploadImageToFirebase = async (uri,id,id2) => {
+    console.log('uploadImageToFirebase running');
+    const imageName = generateUniqueFilename();
+    const reference = storage().ref(`images/${imageName}`);
+    //console.log('Reference: ', reference);
+   // console.log('imageName: ', imageName);
+    try {
+      await reference.putFile(uri);
+      console.log('Image uploaded successfully!');
+      const downloadURL = await getDownloadURL(imageName);
+      console.log('Download URL:', downloadURL);
+      const pf_data = {img_url: downloadURL, img_path: imageName};
+       firestore().collection(FirebaseSchema.user)
+      .doc(user?.uid)
+      .collection(FirebaseSchema.sentMessages)
+      .doc(id2)
+      .update(pf_data);
+      const dB = firestore().collection(FirebaseSchema.chats).doc(vehicleReg)
+      .collection(FirebaseSchema.active_chats)
+      .doc(id)
+      dB.update(pf_data)
+        .then(() => {
+          console.log('Message sent successfully!');
+          setLoading(false);
+          Toast.show({
+            type: 'success',
+            text1: 'Updated!',
+            text2: 'Message has beent sent successfully!',
+          });
+          setVehicleReg('')
+          setCountry('United Kingdom')
+          setMessage('')
+          setImage(null)
+          setFileType('Choose file')
+          setFileText('no file selected')
+        })
+        .catch(error => {
+          setLoading(false);
+          Toast.show({
+            type: 'error',
+            text1: 'Error!',
+            text2: 'Failed to update profile!',
+          });
+          console.log('Error ' + JSON.stringify(error));
+        });
+    } catch (error) {
+      setLoading(false);
+      console.error('Error uploading image: ', error);
+    }
+  };
+  
 
   return (
-   <>
-   <AppLoading
-    isVisible={isLoading}
-   />
-       <ConfirmationDialog
-       isVisible={isVisible}
+    <>
+      <AppLoading isVisible={isLoading} />
+      <ConfirmationDialog
+        isVisible={isVisible}
         onPress1={() => {
           setVisible(false);
-        
         }}
         onPress2={() => {
           setVisible(false);
           setLoading(true);
           auth()
-          .signOut()
-          .then(() => {
-            setLoading(false);
-            navigation.navigate(Routes.SIGN_IN);
-          });
+            .signOut()
+            .then(() => {
+              setLoading(false);
+              navigation.openDrawer();
+            });
         }}
       />
-    <View style={styles.screen}>
-      <AppButton
-        containerStyle={styles.btnContainer}
-        onPress={() => {
-          navigation.navigate(Routes.PROFILE);
-        }}
-        title={'Profile'}
-      />
+      <SafeAreaView style={styles.screen}>
+        <TouchableOpacity
+          style={{margin:10}}>
+          <Icon type={'entypo'} name={'menu'} color={Colors.WHITE} size={30} />
+        </TouchableOpacity>
 
-      <AppButton
-        onPress={() => {
-          setVisible(true);
-        }}
-        containerStyle={styles.btnContainer}
-        title={'Log out'}
-      />
-    </View>
-   </>
+        <ScrollView>
+          <View
+            style={{
+              width: '96%',
+              alignItems: 'center',
+              marginTop: hp(22),
+              alignSelf: 'center',
+            }}>
+            <Text style={styles.title}>{AppStrings.SEND_MESSAGE_TEXT}</Text>
+          </View>
+
+          <AppInput
+            inputContainer={[styles.input, {marginTop: hp(6)}]}
+            isIcon={true}
+            iconName={'car'}
+            iconType={'font-awesome'}
+            placeholder={'Vehicle Registeration'}
+            value={vehicleReg}
+            onChange={text => setVehicleReg(text.replace(/[a-z]/g, ''))}
+            cap="characters"
+          />
+          <AppInput
+            inputContainer={styles.input}
+            isIcon={true}
+            iconName={'filetext1'}
+            iconType={'ant-design'}
+            placeholder={'Message'}
+            value={message}
+            onChange={text => setMessage(text)}
+            isError={vError}
+            errorText={vTextError}
+            cap={'none'}
+          />
+
+          <View
+            style={{
+              width: '90%',
+              height: 40,
+              flexDirection: 'row',
+              alignSelf: 'center',
+              backgroundColor: Colors.INPUT_BG,
+              borderRadius: 5,
+              paddingLeft: 20,
+              marginVertical: 5,
+            }}>
+            <Icon
+              name="upload"
+              type="feather"
+              Colors={Colors.TEXT_COLOR}
+              style={{alignSelf: 'center'}}
+            />
+          <TouchableOpacity 
+          onPress={()=>{
+            updatePicture();
+          }}
+           style={{flexDirection: 'row'}}>
+              <View
+                style={{
+                  backgroundColor: Colors.WHITE,
+                  height: 25,
+                  alignSelf: 'center',
+                  justifyContent: 'center',
+                  marginStart: 20,
+                  borderRadius: 8,
+                  paddingHorizontal: 12,
+                }}>
+                <Text
+                  style={{
+                    color: Colors.BLACK,
+                    fontSize: 14,
+                  }}>
+                  {fileType}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <Text
+              style={{
+                alignSelf: 'center',
+                fontWeight: 'bold',
+                paddingStart: 10,
+              }}>
+             {fileText}
+            </Text>
+          </View>
+
+          <View style={{marginVertical: 5}}>
+            <AppDropdown
+              defaultValue={country}
+              onChange={text => setCountry(text)}
+            />
+          </View>
+          <Text
+            style={{
+              alignSelf: 'center',
+              fontWeight: 'bold',
+              color: Colors.BLACK,
+              marginTop: hp(1),
+            }}>
+            {AppStrings.REPLY_TEXT}
+          </Text>
+          <View style={{width: '90%', flexDirection: 'row',justifyContent:"center",alignItems:"center"}}>
+            <RadioButton
+              value="yes"
+              status={checked === true ? 'checked' : 'unchecked'}
+              onPress={() => setChecked(true)}
+            />
+            <Text>{'Yes'}</Text>
+            <RadioButton
+              value="NO"
+              status={checked === false ? 'checked' : 'unchecked'}
+              onPress={() => setChecked(false)}
+            />
+            <Text>{'No'}</Text>
+          </View>
+
+          <View
+            style={{
+              marginTop: 5,
+              width: '60%',
+              alignSelf: 'center',
+              flexDirection: 'row',
+            }}>
+            <CheckBox
+              style={{padding: 5}}
+              onClick={() => {
+                if (isChecked) {
+                  setIsChecked(false);
+                } else {
+                  setIsChecked(true);
+                }
+              }}
+              isChecked={isChecked}
+              checkBoxColor={Colors.WHITE}
+              checkedCheckBoxColor={Colors.GREEN}
+            />
+            <Text style={{fontSize: 14,alignSelf:'center',color:"blue"}}>Terms and Conditions agreement</Text>
+
+          </View>
+
+          <AppButton
+          title={'Send!'}
+          onPress={() => {
+            sendMessage();
+          }}
+          containerStyle={styles.btnContainer}
+          />
+            <AppButton
+          title={'Inbox'}
+          onPress={() => {
+            navigation.navigate(Routes.INBOX)
+          }}
+          containerStyle={styles.btnContainer}
+          />
+              <AppButton
+          title={'Profile'}
+          onPress={() => {
+            navigation.navigate(Routes.PROFILE)
+          }}
+          containerStyle={styles.btnContainer}
+          />
+
+<AppButton
+          title={'Sent sms'}
+          onPress={() => {
+            navigation.navigate(Routes.SENT)
+          }}
+          containerStyle={styles.btnContainer}
+          />
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 };
 
@@ -66,10 +438,19 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: Colors.PRIMARY,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   btnContainer: {
-    marginVertical: 5,
+    marginVertical: 3,
+    alignSelf:'center'
   },
+  input: {
+    marginHorizontal: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: Colors.BLACK,
+    textAlign: 'center',
+  },
+
 });

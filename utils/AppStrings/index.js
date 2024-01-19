@@ -11,5 +11,11 @@ export const AppStrings ={
     CREDENTIALS_EEOR:"Invalid credentials",
     WRONG_TEXT:"Something went wrong",
     BLOCK_DESIVCE:"We have blocked all requests from this device due to unusual activity",
-    EMAIL_VERFICATION_TEXT:"An email verification link has been sent to your email. Please check your inbox and verify your email before logging in."
+    EMAIL_VERFICATION_TEXT:"An email verification link has been sent to your email. Please check your inbox and verify your email before logging in.",
+    SEND_MESSAGE_TEXT:"SEND YOUR MESSAGE TO THE VEHICLE OWNER!",
+    REPLY_TEXT:"DO YOU WANT TO ALLOW A REPLY TO YOUR MESSAGE?",
+    USER_EXIST:"Username already exists",
+    VEHICLE:"Vehicle number already exists",
+    CHOOSE_FILE:"Choose file'",
+    NO_FILE_SELECTED:"no file selected'",
 }

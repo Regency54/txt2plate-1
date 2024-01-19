@@ -22,7 +22,7 @@ import AppAlert from '../../../../Components/AppAlert';
 import {AppStrings} from '../../../../utils/AppStrings';
 import PasswordChangeDilalog from '../../../../Components/PasswordChangeDilalog';
 import ConfirmationDialog from '../../../../Components/ConfirmationDialog';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import { launchImageLibrary} from 'react-native-image-picker';
 import {check, PERMISSIONS, request} from 'react-native-permissions';
 import {wp, hp} from '../../../../Constants/constant';
 import storage from '@react-native-firebase/storage';
@@ -65,7 +65,7 @@ const Proile = () => {
           setUsename(data?.username);
           setEmail(data?.email);
           setCountry(data?.country);
-          setVehicleReg(data?.vehicl_number);
+          setVehicleReg(data?.vehicle_number);
           setPassword('........');
         }
       });
@@ -121,65 +121,6 @@ const Proile = () => {
       });
     }
   };
-
-  // const deleteAccount = () => {
-  //   setConfirmation(false);
-  //   setLoading(true);
-  //   const _user = auth().currentUser;
-  //   // Delete Firestore User Data
-  //   const subscriber = firestore()
-  //     .collection(FirebaseSchema.user)
-  //     .doc(user?.uid);
-  //   subscriber
-  //     .delete()
-  //     .then(() => {
-  //       // Delete Authentication Account
-  //       _user
-  //         .delete()
-  //         .then(() => {
-  //           const reference = storage().ref(`profile_pictures/${user?.img_path}`);
-  //           reference
-  //           .delete(()=>{
-  //             setLoading(false);
-  //             Toast.show({
-  //               type: 'success',
-  //               text1: 'Deleted!',
-  //               text2: 'Account deleted successfully!',
-  //             });
-  //             setTimeout(() => {
-  //               navigation.navigate(Routes.SIGN_IN);
-  //             }, 1500);
-  //           })
-  //           .catch((error)=>{
-  //             setLoading(false);
-  //             console.log("Error "+JSON.stringify(error))
-  //             Toast.show({
-  //               type: 'error',
-  //               text1: 'Failed!',
-  //               text2: 'Failed to deleted account!',
-  //             });
-  //           })
-  //         })
-  //         .catch(error => {
-  //           setLoading(false);
-  //           console.log('User error ' + JSON.stringify(error));
-  //           Toast.show({
-  //             type: 'error',
-  //             text1: 'Error',
-  //             text2: 'Failed to delete the account',
-  //           });
-  //         });
-  //     })
-  //     .catch(error => {
-  //       setLoading(false);
-  //       console.log('DB error ' + JSON.stringify(error));
-  //       Toast.show({
-  //         type: 'error',
-  //         text1: 'Error',
-  //         text2: 'Failed to delete user data',
-  //       });
-  //     });
-  // };
   const onClose = () => {
     setPasswordDialog(false);
   };
