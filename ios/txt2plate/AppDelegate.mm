@@ -1,5 +1,6 @@
 #import "AppDelegate.h"
 #import <Firebase.h>
+#import "RNFBMessagingModule.h"
 #import <React/RCTBundleURLProvider.h>
 
 @implementation AppDelegate

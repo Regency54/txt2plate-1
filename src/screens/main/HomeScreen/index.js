@@ -1,4 +1,4 @@
-import React, {useEffect, useState,useCallback} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   StyleSheet,
   Text,
@@ -20,27 +20,25 @@ import AppInput from '../../../../Components/AppInput';
 import {AppStrings} from '../../../../utils/AppStrings';
 import {hp} from '../../../../Constants/constant';
 import AppDropdown from '../../../../Components/AppDropdown';
-import { RadioButton } from 'react-native-paper';
+import {RadioButton} from 'react-native-paper';
 import CheckBox from 'react-native-check-box';
-import { launchImageLibrary} from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
 import Toast from 'react-native-toast-message';
 import storage from '@react-native-firebase/storage';
-import { FirebaseSchema } from '../../../../Database/FirebaseSchema';
+import {FirebaseSchema} from '../../../../Database/FirebaseSchema';
 import firestore from '@react-native-firebase/firestore';
 import StorageService from '../../../../utils/StorageService';
-
-
-
-
-
-
-
+import {useRoute} from '@react-navigation/native';
 
 const HomeScreen = () => {
+  const route = useRoute();
+  const obj = route.params;
+  var id = obj?.id;
+  console.log('id ' + obj?.id);
   const [vTextError, setTextVerror] = useState('');
   const [vError, setVerror] = useState(false);
   const [vehicleReg, setVehicleReg] = useState('');
-  const [message,setMessage] = useState('');
+  const [message, setMessage] = useState('');
   const [country, setCountry] = useState('United Kingdom');
   const navigation = useNavigation();
   const [isVisible, setVisible] = useState(false);
@@ -48,35 +46,39 @@ const HomeScreen = () => {
   const [checked, setChecked] = React.useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [image, setImage] = useState(null);
-  const [fileType,setFileType] = useState('');
-  const [fileText,setFileText] = useState('');
+  const [fileType, setFileType] = useState('');
+  const [fileText, setFileText] = useState('');
   const [user, setUser] = useState(null);
+  const [isEditable, setEditAble] = useState(true);
 
-  useEffect(()=>{
+  useEffect(() => {
     StorageService.getItem(FirebaseSchema.user)
-    .then((retrievedObject) => {
-      if (retrievedObject) {
-        setUser(retrievedObject);
-        console.log('Retrieved object:', retrievedObject);
-      } else {
-        console.log('Object not found in AsyncStorage');
-      }
-    })
-    .catch((error) => {
-      console.error('Error retrieving object:', error);
-    });
-  },[])
+      .then(retrievedObject => {
+        if (retrievedObject) {
+          setUser(retrievedObject);
 
+          console.log('Retrieved object:', retrievedObject);
+        } else {
+          console.log('Object not found in AsyncStorage');
+        }
+      })
+      .catch(error => {
+        console.error('Error retrieving object:', error);
+      });
+  }, []);
 
-  useEffect(()=>{
-    setFileType(AppStrings.CHOOSE_FILE)
-    setFileText(AppStrings.NO_FILE_SELECTED)
-  },[])
+  useEffect(() => {
+    console.log('user ' + id);
+    if (id != user?.vehicle_number) {
+      setVehicleReg(id);
+      setEditAble(false);
+    }
+  }, [id]);
 
-  const handleVehicleRegChange = useCallback((text) => {
-    setVehicleReg(text.toUpperCase());
-  }, []); 
-
+  useEffect(() => {
+    setFileType(AppStrings.CHOOSE_FILE);
+    setFileText(AppStrings.NO_FILE_SELECTED);
+  }, []);
 
   const updatePicture = async () => {
     console.log('updatePicture running');
@@ -88,19 +90,17 @@ const HomeScreen = () => {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else if (response.assets) {
-       //setLoading(true);
+        //setLoading(true);
         const uri = response?.assets[0]?.uri;
         setImage(uri);
         setFileText('Selected');
-        setFileType('Change')
+        setFileType('Change');
         // await uploadImageToFirebase(uri);
-
       }
     });
   };
 
-  const sendMessage = ()=>{
-      
+  const sendMessage = () => {
     if (vehicleReg == '') {
       Toast.show({
         type: 'error',
@@ -124,48 +124,52 @@ const HomeScreen = () => {
         text2: 'Image is required!',
       });
       return;
-  }
-  setLoading(true);
-  console.log("check "+checked)
-  const usersColRefSentMessages = firestore().collection(FirebaseSchema.chats);
-  const usersColRefRecieved = firestore().collection(FirebaseSchema.user)
-  .doc(user?.uid).collection(FirebaseSchema.sentMessages);
-  const data ={
-    uid: user?.uid,
-    vehicle_number: vehicleReg,
-    message: message,
-    isReplyAllow:checked,
-    isRecieved:false,
-    username:user?.username,
-    datetime:new Date().toISOString(),
     }
-    usersColRefRecieved.add(data)
-    .then((docRef)=>{
-      const sentId = docRef.id;
-      docRef.update({ chat_id: sentId })
-      usersColRefSentMessages
-      .doc(vehicleReg)
-      .collection(FirebaseSchema.active_chats)
+    setLoading(true);
+    console.log('check ' + checked);
+    const usersColRefSentMessages = firestore().collection(
+      FirebaseSchema.chats,
+    );
+    const usersColRefRecieved = firestore()
+      .collection(FirebaseSchema.user)
+      .doc(user?.uid)
+      .collection(FirebaseSchema.sentMessages);
+    const data = {
+      uid: user?.uid,
+      vehicle_number: user?.vehicle_number,
+      message: message,
+      isReplyAllow: checked,
+      isRecieved: false,
+      username: user?.username,
+      datetime: new Date().toISOString(),
+    };
+    usersColRefRecieved
       .add(data)
-      .then((docRef)=>{
-        const id = docRef.id;
-        docRef.update({ chat_id: id })
-      uploadImageToFirebase(image,id,sentId);
+      .then(docRef => {
+        const sentId = docRef.id;
+        docRef.update({chat_id: sentId});
+        usersColRefSentMessages
+          .doc(vehicleReg)
+          .collection(FirebaseSchema.active_chats)
+          .add(data)
+          .then(docRef => {
+            const id = docRef.id;
+            docRef.update({chat_id: id});
+            uploadImageToFirebase(image, id, sentId);
+          })
+          .catch(err => {
+            setLoading(false);
+            console.log('Error: ' + err);
+          });
       })
-      .catch((err)=>{
+      .catch(err => {
         setLoading(false);
-       console.log("Error: "+err)
-      })
-    })
-    .catch((err)=>{
-      setLoading(false);
-      console.log("Error: "+err)
-    })
-
-}
+        console.log('Error: ' + err);
+      });
+  };
 
   const generateUniqueFilename = () => {
-    console.log("generateUniqueFilename running");
+    console.log('generateUniqueFilename running');
     const timestamp = new Date().getTime();
     return `image_${timestamp}.jpg`;
   };
@@ -181,26 +185,29 @@ const HomeScreen = () => {
       return null;
     }
   };
-  const uploadImageToFirebase = async (uri,id,id2) => {
+  const uploadImageToFirebase = async (uri, id, id2) => {
     console.log('uploadImageToFirebase running');
     const imageName = generateUniqueFilename();
     const reference = storage().ref(`images/${imageName}`);
     //console.log('Reference: ', reference);
-   // console.log('imageName: ', imageName);
+    // console.log('imageName: ', imageName);
     try {
       await reference.putFile(uri);
       console.log('Image uploaded successfully!');
       const downloadURL = await getDownloadURL(imageName);
       console.log('Download URL:', downloadURL);
       const pf_data = {img_url: downloadURL, img_path: imageName};
-       firestore().collection(FirebaseSchema.user)
-      .doc(user?.uid)
-      .collection(FirebaseSchema.sentMessages)
-      .doc(id2)
-      .update(pf_data);
-      const dB = firestore().collection(FirebaseSchema.chats).doc(vehicleReg)
-      .collection(FirebaseSchema.active_chats)
-      .doc(id)
+      firestore()
+        .collection(FirebaseSchema.user)
+        .doc(user?.uid)
+        .collection(FirebaseSchema.sentMessages)
+        .doc(id2)
+        .update(pf_data);
+      const dB = firestore()
+        .collection(FirebaseSchema.chats)
+        .doc(vehicleReg)
+        .collection(FirebaseSchema.active_chats)
+        .doc(id);
       dB.update(pf_data)
         .then(() => {
           console.log('Message sent successfully!');
@@ -210,12 +217,14 @@ const HomeScreen = () => {
             text1: 'Updated!',
             text2: 'Message has beent sent successfully!',
           });
-          setVehicleReg('')
-          setCountry('United Kingdom')
-          setMessage('')
-          setImage(null)
-          setFileType('Choose file')
-          setFileText('no file selected')
+          setIsChecked(false);
+          setEditAble(true);
+          setVehicleReg('');
+          setCountry('United Kingdom');
+          setMessage('');
+          setImage(null);
+          setFileType('Choose file');
+          setFileText('no file selected');
         })
         .catch(error => {
           setLoading(false);
@@ -231,7 +240,6 @@ const HomeScreen = () => {
       console.error('Error uploading image: ', error);
     }
   };
-  
 
   return (
     <>
@@ -253,8 +261,7 @@ const HomeScreen = () => {
         }}
       />
       <SafeAreaView style={styles.screen}>
-        <TouchableOpacity
-          style={{margin:10}}>
+        <TouchableOpacity style={{margin: 10}}>
           <Icon type={'entypo'} name={'menu'} color={Colors.WHITE} size={30} />
         </TouchableOpacity>
 
@@ -278,6 +285,7 @@ const HomeScreen = () => {
             value={vehicleReg}
             onChange={text => setVehicleReg(text.replace(/[a-z]/g, ''))}
             cap="characters"
+            editAble={isEditable}
           />
           <AppInput
             inputContainer={styles.input}
@@ -309,11 +317,11 @@ const HomeScreen = () => {
               Colors={Colors.TEXT_COLOR}
               style={{alignSelf: 'center'}}
             />
-          <TouchableOpacity 
-          onPress={()=>{
-            updatePicture();
-          }}
-           style={{flexDirection: 'row'}}>
+            <TouchableOpacity
+              onPress={() => {
+                updatePicture();
+              }}
+              style={{flexDirection: 'row'}}>
               <View
                 style={{
                   backgroundColor: Colors.WHITE,
@@ -339,7 +347,7 @@ const HomeScreen = () => {
                 fontWeight: 'bold',
                 paddingStart: 10,
               }}>
-             {fileText}
+              {fileText}
             </Text>
           </View>
 
@@ -358,15 +366,21 @@ const HomeScreen = () => {
             }}>
             {AppStrings.REPLY_TEXT}
           </Text>
-          <View style={{width: '90%', flexDirection: 'row',justifyContent:"center",alignItems:"center"}}>
+          <View
+            style={{
+              width: '90%',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
             <RadioButton
-              value="yes"
+              value={checked}
               status={checked === true ? 'checked' : 'unchecked'}
               onPress={() => setChecked(true)}
             />
             <Text>{'Yes'}</Text>
             <RadioButton
-              value="NO"
+              value={checked}
               status={checked === false ? 'checked' : 'unchecked'}
               onPress={() => setChecked(false)}
             />
@@ -393,38 +407,48 @@ const HomeScreen = () => {
               checkBoxColor={Colors.WHITE}
               checkedCheckBoxColor={Colors.GREEN}
             />
-            <Text style={{fontSize: 14,alignSelf:'center',color:"blue"}}>Terms and Conditions agreement</Text>
-
+            <Text style={{fontSize: 14, alignSelf: 'center', color: 'blue'}}>
+              Terms and Conditions agreement
+            </Text>
           </View>
 
           <AppButton
-          title={'Send!'}
-          onPress={() => {
-            sendMessage();
-          }}
-          containerStyle={styles.btnContainer}
+            title={'Send!'}
+            onPress={() => {
+              sendMessage();
+            }}
+            containerStyle={styles.btnContainer}
           />
-            <AppButton
-          title={'Inbox'}
-          onPress={() => {
-            navigation.navigate(Routes.INBOX)
-          }}
-          containerStyle={styles.btnContainer}
+          <AppButton
+            title={'Inbox'}
+            onPress={() => {
+              navigation.setParams({id: null});
+              id = null;
+              setEditAble(true);
+              navigation.navigate(Routes.INBOX);
+            }}
+            containerStyle={styles.btnContainer}
           />
-              <AppButton
-          title={'Profile'}
-          onPress={() => {
-            navigation.navigate(Routes.PROFILE)
-          }}
-          containerStyle={styles.btnContainer}
+          <AppButton
+            title={'Profile'}
+            onPress={() => {
+              navigation.setParams({id: null});
+              id = null;
+              setEditAble(true);
+              navigation.navigate(Routes.PROFILE);
+            }}
+            containerStyle={styles.btnContainer}
           />
 
-<AppButton
-          title={'Sent sms'}
-          onPress={() => {
-            navigation.navigate(Routes.SENT)
-          }}
-          containerStyle={styles.btnContainer}
+          <AppButton
+            title={'Sent sms'}
+            onPress={() => {
+              navigation.setParams({id: null});
+              id = null;
+              setEditAble(true);
+              navigation.navigate(Routes.SENT);
+            }}
+            containerStyle={styles.btnContainer}
           />
         </ScrollView>
       </SafeAreaView>
@@ -441,7 +465,7 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     marginVertical: 3,
-    alignSelf:'center'
+    alignSelf: 'center',
   },
   input: {
     marginHorizontal: 20,
@@ -452,5 +476,4 @@ const styles = StyleSheet.create({
     color: Colors.BLACK,
     textAlign: 'center',
   },
-
 });

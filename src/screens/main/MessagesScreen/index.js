@@ -7,10 +7,12 @@ import firestore from '@react-native-firebase/firestore';
 import {FirebaseSchema} from '../../../../Database/FirebaseSchema';
 import AppLoading from '../../../../Components/AppLoading';
 import StorageService from '../../../../utils/StorageService';
+import { useNavigation } from '@react-navigation/native';
 
 const MessagesScreen = () => {
+  const navigation = useNavigation();
   const renderItem = itemData => {
-    return <InboxItem data={itemData.item} inbox={true}/>;
+    return <InboxItem data={itemData.item} inbox={true} getList={getMessages}/>;
   };
   const [messages, setMessages] = useState([]);
   const [isLoading, setLoading] = useState(false);
@@ -31,9 +33,18 @@ const MessagesScreen = () => {
   },[])
 
   useEffect(() => {
+    navigation.setParams({ id: null });
+  }, []);
+
+  useEffect(() => {
+     getMessages()
+  }, [user?.vehicle_number]);
+
+  const getMessages = ()=>{
     setLoading(true); 
+    setMessages([]);
     console.log("vehicle "+user?.vehicle_number)
-     const unsubscribe = firestore()
+     firestore()
      .collection(FirebaseSchema.chats)
      .doc(user?.vehicle_number)
      .collection(FirebaseSchema.active_chats)
@@ -56,10 +67,7 @@ const MessagesScreen = () => {
        setMessages(updatedMessages);
        setLoading(false);
      });
-
-   // Return the cleanup function
-   return () => unsubscribe();
-  }, [user?.vehicle_number]);
+  }
   
 
   return (

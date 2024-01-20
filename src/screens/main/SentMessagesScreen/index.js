@@ -10,9 +10,7 @@ import StorageService from '../../../../utils/StorageService';
 
 const SentMessagesScreen = () => {
 
-  const renderItem = itemData => {
-    return <InboxItem data={itemData.item} inbox={false}/>;
-  };
+ 
   const [messages, setMessages] = useState([]);
   const [isLoading, setLoading] = useState(false);
   const [user,setUser] = useState(null);
@@ -31,10 +29,14 @@ const SentMessagesScreen = () => {
     });
   },[])
 
-  useEffect(() => {
+
+
+
+  const getSentItems = ()=>{
     setLoading(true); 
+    setMessages([]);
     console.log("vehicle "+user?.vehicle_number)
-     const unsubscribe = firestore()
+      firestore()
      .collection(FirebaseSchema.user)
      .doc(user?.uid)
      .collection(FirebaseSchema.sentMessages)
@@ -57,10 +59,14 @@ const SentMessagesScreen = () => {
        setMessages(updatedMessages);
        setLoading(false);
      });
+  }
 
-   // Return the cleanup function
-   return () => unsubscribe();
-  }, [user?.vehicle_number]);
+  useEffect(() => {
+    getSentItems();
+        }, [user?.vehicle_number]);
+  const renderItem = itemData => {
+    return <InboxItem data={itemData.item} inbox={false} getList={getSentItems}/>;
+  };
   return (
     <>
       <AppLoading isVisible={isLoading} />

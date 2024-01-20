@@ -5,6 +5,7 @@ class StorageService {
   static async setItem(key, value) {
     try {
       await AsyncStorage.setItem(key, JSON.stringify(value));
+      console.log("ob saved successfully");
     } catch (error) {
       console.error('Error setting item in AsyncStorage:', error);
     }

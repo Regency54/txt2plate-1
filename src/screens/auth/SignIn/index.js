@@ -1,13 +1,11 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect} from 'react';
 import {
   StyleSheet,
   Text,
   View,
   SafeAreaView,
   TouchableOpacity,
-  ScrollView,
   Alert,
-  Platform,
 } from 'react-native';
 import Colors from '../../../../Constants/Colors';
 import AppButton from '../../../../Components/AppButton';
@@ -22,6 +20,9 @@ import auth from '@react-native-firebase/auth';
 import Toast from 'react-native-toast-message';
 import AppLoading from '../../../../Components/AppLoading';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import StorageService from '../../../../utils/StorageService';
+import firestore from '@react-native-firebase/firestore';
+import { FirebaseSchema } from '../../../../Database/FirebaseSchema';
 
 const SignIn = () => {
   const navigation = useNavigation();
@@ -32,8 +33,23 @@ const SignIn = () => {
   const [passError, setPassError] = useState('');
   const [passErrorText, setPassErrorText] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const [deviceToken,setToken] = useState('');
 
-  const SignIn = () => {
+
+  useEffect(()=>{
+    getToken();
+  },[])
+
+  const getToken = async () => {
+    try {
+      const token = await StorageService.getItem('token');
+      setToken(token?.token);
+      console.log("Sign in Token " + token?.token);
+    } catch (error) {
+      console.error('Error retrieving token:', error);
+    }
+  };
+  const SignIn =  () => {
     if (password == '') {
       setPassError(true);
       setPassErrorText(AppStrings.FIELD_REQUIRED);
@@ -53,46 +69,80 @@ const SignIn = () => {
       setLoading(true);
       auth()
         .signInWithEmailAndPassword(email, password)
-        .then((res) => {
-          setLoading(false);
-          console.log("res "+JSON.stringify(res))
-          console.log("emailVerified "+res?.user?.emailVerified)
-          let isUserVerified = res?.user?.emailVerified;
-          if (isUserVerified) {
-          setLoading(false);
-          setEmailError(false);
-          setPassError(false);
-          setErrorText('');
-          setEmail('');
-          setPassword('');
-          navigation.navigate(Routes.HOME_SCREEN); 
-          } else{
-            Toast.show({
-              type: 'error',
-              text1: 'Error',
-              text2: 'Please verify email address before login!',
-            });
-          }
+        .then(res => {
+          firestore()
+          .collection(FirebaseSchema.user)
+          .doc(res?.user?.uid)
+          .update({token:deviceToken})
+          .then(()=>{
+            console.log('res ' + JSON.stringify(res));
+            console.log('emailVerified ' + res?.user?.emailVerified);
+            let isUserVerified = res?.user?.emailVerified;
+            if (isUserVerified) {
+              firestore()
+                .collection(FirebaseSchema.user)
+                .doc(res?.user?.uid)
+                .onSnapshot(documentSnapshot => {
+                  if (documentSnapshot.exists) {
+                    let data = documentSnapshot.data();
+                    let userData = {
+                      username: data?.username,
+                      email: data?.email,
+                      country: data?.country,
+                      vehicle_number: data?.vehicle_number,
+                      img_url: data?.img_url,
+                      uid: data?.uid,
+                    };
+                    StorageService.setItem(FirebaseSchema.user, userData)
+                      .then(() => {
+                        navigation.reset({
+                          index: 0,
+                          routes: [{name: Routes.HOME_SCREEN}],
+                        });
+                      })
+                      .catch(error => {
+                        console.error('Error saving object:', error);
+                      });
+  
+                    setLoading(false);
+                    setEmailError(false);
+                    setPassError(false);
+                    setErrorText('');
+                    setEmail('');
+                    setPassword('');
+                  }
+                });
+            } else {
+              Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Please verify email address before login!',
+              });
+            }
+          })
+          .catch((err)=>{
+            setLoading(false);
+            console.log('err ' + err);
+          })
          
         })
         .catch(error => {
           setLoading(false);
-          console.log("error "+error.code)
-          if (error.code == 'auth/user-not-found'
-          || error.code == 'auth/wrong-password'
-          || error.code == 'auth/invalid-credential'
-        
+          console.log('error ' + error.code);
+          if (
+            error.code == 'auth/user-not-found' ||
+            error.code == 'auth/wrong-password' ||
+            error.code == 'auth/invalid-credential'
           ) {
-           Alert.alert('Error',AppStrings.CREDENTIALS_EEOR)
-            return
+            Alert.alert('Error', AppStrings.CREDENTIALS_EEOR);
+            return;
           }
-          if (error.code==='auth/too-many-requests') {
-            Alert.alert('Error',AppStrings.BLOCK_DESIVCE);
-            return
+          if (error.code === 'auth/too-many-requests') {
+            Alert.alert('Error', AppStrings.BLOCK_DESIVCE);
+            return;
           }
           Alert.alert('Error', AppStrings.WRONG_TEXT);
           console.error(error);
-        
         });
     }
   };

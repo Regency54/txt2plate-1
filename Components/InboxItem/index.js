@@ -23,7 +23,7 @@ import storage from '@react-native-firebase/storage';
 
 
 
-const InboxItem = ({data,inbox}) => {
+const InboxItem = ({data,inbox,getList}) => {
   const navigation = useNavigation();
   const [isVisible, setVisible] = useState(false);
   const [isDialogVisible, setDialogVisible] = useState(false);
@@ -31,34 +31,33 @@ const InboxItem = ({data,inbox}) => {
   //console.log('datetime ' + data?.isReplyAllow);
   const replyAllow = data?.isReplyAllow;
   const formattedDateTime = moment(data?.datetime).format('hh:mm A MM/DD/YYYY');
+  var username = data?.username;
+  if (!replyAllow) {
+    username = 'Unknown';
+  }
 
   const deleteMessage = async() => {
     setDialogVisible(false);
    console.log('chat id '+data.chat_id)
    console.log('image path '+data.img_url)
-   const reference =  storage().refFromURL(data?.img_url);
-   await reference.delete();
-    if (inbox) {
-    await firestore()
-      .collection(FirebaseSchema.chats)
-      .doc(data?.vehicle_number)
-      .collection(FirebaseSchema.active_chats)
-      .doc(data?.chat_id)
-      .delete();
-    } else{
-      await firestore()
-      .collection(FirebaseSchema.chats)
-      .doc(data?.vehicle_number)
-      .collection(FirebaseSchema.active_chats)
-      .doc(data?.chat_id)
-      .delete();
+  
+   await firestore()
+     .collection(FirebaseSchema.chats)
+     .doc(data?.vehicle_number)
+     .collection(FirebaseSchema.active_chats)
+     .doc(data?.chat_id)
+     .delete();
+    if (!inbox) {
+      const reference =  storage().refFromURL(data?.img_url);
+      await reference.delete();
       await firestore()
       .collection(FirebaseSchema.user)
       .doc(data?.uid)
       .collection(FirebaseSchema.sentMessages)
       .doc(data?.chat_id)
       .delete();
-    }
+    } 
+    getList();
   };
 
   return (
@@ -80,7 +79,10 @@ const InboxItem = ({data,inbox}) => {
         onPress2={deleteMessage}
       />
       <SafeAreaView style={styles.screen}>
-        <Image style={styles.avatar} source={{uri: data?.img_url}} />
+      <Image
+            style={styles.avatar}
+            source={data?.img_url ? {uri: data?.img_url} : require('../../src/Images/pf.jpg')}
+          />
         <View
           style={{
             flex: 1,
@@ -90,7 +92,7 @@ const InboxItem = ({data,inbox}) => {
           <Text
             ellipsizeMode="tail"
             numberOfLines={1}
-            style={styles.username}>{inbox === true?`Username: ${data?.username}`:`Vehicle Number: ${data?.vehicle_number}`}</Text>
+            style={styles.username}>{inbox === true?`Username: ${username}`:`Vehicle Number: ${data?.vehicle_number}`}</Text>
           <View>
             <Text style={styles.label}>{formattedDateTime}</Text>
             <Text
@@ -113,7 +115,7 @@ const InboxItem = ({data,inbox}) => {
                 Colors ={Colors.TEXT_COLOR}
 
                 onPress={() => {
-                  navigation.navigate(Routes.HOME_SCREEN);
+                  navigation.navigate(Routes.HOME_SCREEN,{id:data?.vehicle_number});
                 }}
               />
             </TouchableOpacity>
