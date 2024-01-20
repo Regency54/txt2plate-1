@@ -256,7 +256,7 @@ const HomeScreen = () => {
             .signOut()
             .then(() => {
               setLoading(false);
-              navigation.openDrawer();
+              navigation.navigate(Routes.SIGN_IN);
             });
         }}
       />
@@ -450,6 +450,14 @@ const HomeScreen = () => {
             }}
             containerStyle={styles.btnContainer}
           />
+
+          <AppButton
+            title={'Logout'}
+            onPress={() => {
+              setVisible(true);
+            }}
+            containerStyle={styles.btnContainer}
+          />
         </ScrollView>
       </SafeAreaView>
     </>
@@ -464,7 +472,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY,
   },
   btnContainer: {
-    marginVertical: 3,
+    marginVertical: 5,
     alignSelf: 'center',
   },
   input: {
