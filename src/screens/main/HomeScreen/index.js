@@ -323,6 +323,7 @@ const HomeScreen = () => {
             value={vehicleReg}
             onChange={text => setVehicleReg(text.replace(/[a-z]/g, ''))}
             cap="characters"
+            editAble={isEditable}
           />
           <AppInput
             inputContainer={styles.input}
