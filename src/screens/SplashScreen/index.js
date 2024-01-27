@@ -13,8 +13,10 @@ const SplashScreen = () => {
   useEffect(() => {
     let user = auth().currentUser;
     const subscriber = firestore().collection(FirebaseSchema.user);
+    let unsubscribe;
+  
     if (user) {
-      subscriber.doc(user?.uid).onSnapshot(documentSnapshot => {
+      unsubscribe = subscriber.doc(user?.uid).onSnapshot(documentSnapshot => {
         if (documentSnapshot != null) {
           let data = documentSnapshot.data();
           let userData = {
@@ -29,7 +31,7 @@ const SplashScreen = () => {
             .then(() => {
               navigation.reset({
                 index: 0,
-                routes: [{name: Routes.HOME_SCREEN}],
+                routes: [{name: Routes.DrawerScreen}],
               });
             })
             .catch(error => {
@@ -45,8 +47,9 @@ const SplashScreen = () => {
         });
       }, 3000);
     }
-
-    return () => subscriber();
+  
+    // Use unsubscribe instead of invoking subscriber
+    return () => unsubscribe && unsubscribe();
   }, []);
   return (
     <SafeAreaView style={styles.screen}>

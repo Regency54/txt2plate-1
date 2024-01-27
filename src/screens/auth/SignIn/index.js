@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
 import Colors from '../../../../Constants/Colors';
 import AppButton from '../../../../Components/AppButton';
@@ -70,12 +71,13 @@ const SignIn = () => {
       auth()
         .signInWithEmailAndPassword(email, password)
         .then(res => {
+          //console.log('res ' + JSON.stringify(res));
           firestore()
           .collection(FirebaseSchema.user)
           .doc(res?.user?.uid)
-          .update({token:deviceToken})
+          .update({ token:deviceToken??'null'})
           .then(()=>{
-            console.log('res ' + JSON.stringify(res));
+            //console.log('res ' + JSON.stringify(res));
             console.log('emailVerified ' + res?.user?.emailVerified);
             let isUserVerified = res?.user?.emailVerified;
             if (isUserVerified) {
@@ -95,21 +97,21 @@ const SignIn = () => {
                     };
                     StorageService.setItem(FirebaseSchema.user, userData)
                       .then(() => {
-                        navigation.reset({
-                          index: 0,
-                          routes: [{name: Routes.HOME_SCREEN}],
-                        });
+                        setLoading(false);
+                        setEmailError(false);
+                        setPassError(false);
+                        setErrorText('');
+                        setEmail('');
+                        setPassword('');
+                        console.log("User data "+JSON.stringify(userData));
+                        navigation.navigate(Routes.DrawerScreen);
+                       
                       })
                       .catch(error => {
                         console.error('Error saving object:', error);
                       });
   
-                    setLoading(false);
-                    setEmailError(false);
-                    setPassError(false);
-                    setErrorText('');
-                    setEmail('');
-                    setPassword('');
+                  
                   }
                 });
             } else {

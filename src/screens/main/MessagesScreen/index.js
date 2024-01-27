@@ -11,8 +11,10 @@ import { useNavigation } from '@react-navigation/native';
 
 const MessagesScreen = () => {
   const navigation = useNavigation();
+
+
   const renderItem = itemData => {
-    return <InboxItem data={itemData.item} inbox={true} getList={getMessages}/>;
+    return <InboxItem data={itemData.item} inbox={true} getList={getMessages} isInbox={true}/>;
   };
   const [messages, setMessages] = useState([]);
   const [isLoading, setLoading] = useState(false);

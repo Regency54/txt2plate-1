@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect,useRef} from 'react';
 import {
   StyleSheet,
   Text,
@@ -46,6 +46,18 @@ const SignUp = () => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const [items, setItems] = useState([]);
+
+  const scrollViewRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  };
+  useEffect(() => {
+    // Scroll down when the screen is opened for the first time
+    scrollToBottom();
+  }, []);
 
 
 
@@ -286,15 +298,25 @@ const SignUp = () => {
 
   return (
     <>
-      {isAppAlert ? <AppAlert 
-      title={alertTitle}
-      content={alertText}
-      isVisible={isAppAlert}
-      onPress={alertEvent}
-      /> : null}
-      {isLoading?(<AppLoading isVisible={isLoading} />):null}
+      {isAppAlert ? (
+        <AppAlert
+          title={alertTitle}
+          content={alertText}
+          isVisible={isAppAlert}
+          onPress={alertEvent}
+          isButton={true}
+        />
+      ) : null}
+      {isLoading ? <AppLoading isVisible={isLoading} /> : null}
       <SafeAreaView style={styles.screen}>
-        <ScrollView>
+        <ScrollView
+          ref={scrollViewRef}
+          style={{flex: 1}}
+          onContentSizeChange={() =>
+            scrollViewRef.current.scrollToEnd({animated: true})
+          }
+          onLayout={() => scrollToBottom()}
+          >
           <Text style={styles.title}>{`"SIGN UP HERE FOR FREE"`}</Text>
           <AppInput
             inputContainer={styles.input}
@@ -323,10 +345,10 @@ const SignUp = () => {
             cap={'none'}
           />
           <AppDropdown
-          defaultValue={country}
-          onChange={text => setCountry(text)}
+            defaultValue={country}
+            onChange={text => setCountry(text)}
           />
-        
+
           <AppInput
             inputContainer={styles.input}
             isIcon={true}
@@ -337,7 +359,7 @@ const SignUp = () => {
             onChange={text => setVehicleReg(text.replace(/[a-z]/g, ''))}
             isError={vError}
             errorText={vTextError}
-             cap={'characters'}
+            cap={'characters'}
           />
 
           <AppInput
@@ -366,8 +388,7 @@ const SignUp = () => {
             errorText={cPassTextError}
             secureTextEntry={true}
             cap={'none'}
-
-          /> 
+          />
           <View
             style={{
               marginTop: 10,
@@ -389,8 +410,9 @@ const SignUp = () => {
               checkBoxColor={Colors.TEXT_COLOR_3}
               checkedCheckBoxColor={Colors.GREEN}
             />
-            <Text style={{fontSize: 12,alignSelf:'center'}}>Terms and Conditions agreement</Text>
-
+            <Text style={{fontSize: 12, alignSelf: 'center'}}>
+              Terms and Conditions agreement
+            </Text>
           </View>
           <AppButton
             textStyle={{fontSize: 14}}
@@ -398,48 +420,50 @@ const SignUp = () => {
             containerStyle={{alignSelf: 'center'}}
             onPress={SignUp}
           />
+
+          <View style={styles.bottomCurve}>
+            <View style={styles.centerContent}>
+              <Text
+                style={{color: Colors.BLACK, fontSize: 32, fontWeight: 'bold'}}>
+                {AppStrings.APP_NAME}
+              </Text>
+              <Text
+                style={{color: Colors.BLACK, fontSize: 18, fontWeight: 'bold'}}>
+                One of us?
+              </Text>
+              <Text style={{fontSize: 12, marginTop: 5}}>
+                Login with your email and password :D
+              </Text>
+              <AppButton
+                textStyle={{
+                  fontWeight: 'normal',
+                  fontSize: 14,
+                }}
+                containerStyle={styles.btnContainer2}
+                title={'SIGN IN'}
+                onPress={() => {
+                  navigation.navigate(Routes.SIGN_IN);
+                }}
+              />
+            </View>
+          </View>
         </ScrollView>
 
-        <View style={styles.bottomCurve}>
-          <View style={styles.centerContent}>
-            <Text
-              style={{color: Colors.BLACK, fontSize: 32, fontWeight: 'bold'}}>
-              {AppStrings.APP_NAME}
-            </Text>
-            <Text
-              style={{color: Colors.BLACK, fontSize: 18, fontWeight: 'bold'}}>
-              One of us?
-            </Text>
-            <Text style={{fontSize: 12, marginTop: 5}}>
-              Login with your email and password :D
-            </Text>
-            <AppButton
-              textStyle={{
-                fontWeight: 'normal',
-                fontSize: 14,
-              }}
-              containerStyle={styles.btnContainer2}
-              title={'SIGN IN'}
-              onPress={() => {
-                navigation.navigate(Routes.SIGN_IN);
-              }}
-            />
-          </View>
-        </View>
-       {Platform.OS == 'ios' ?  <View
-        style={{
-          backgroundColor: Colors.WHITE,
-          width: '100%',
-          height:'10%',
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1,
-        }}/>: null}
+        {Platform.OS == 'ios' ? (
+          <View
+            style={{
+              backgroundColor: Colors.WHITE,
+              width: '100%',
+              height: '5%',
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1,
+            }}
+          />
+        ) : null}
       </SafeAreaView>
-      
-
     </>
   );
 };
@@ -479,9 +503,8 @@ const styles = StyleSheet.create({
     transform: [{scaleX: 1.5}],
     borderTopStartRadius: 200,
     borderTopEndRadius: 200,
-    borderBottomStartRadius: 0,
-    borderBottomEndRadius: 0,
     backgroundColor: Colors.WHITE,
+    marginTop:'27%',
   },
   container: {
     backgroundColor: 'white',

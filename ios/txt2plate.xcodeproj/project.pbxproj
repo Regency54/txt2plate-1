@@ -43,6 +43,7 @@
 		D5E2E1F57D35F4BB29D52D1E /* Pods_txt2plate_txt2plateTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_txt2plate_txt2plateTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FA6C64272B5473560029EDC2 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		FADB503D2B64508C0051FC22 /* txt2plate.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = txt2plate.entitlements; path = txt2plate/txt2plate.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +69,7 @@
 		13B07FAE1A68108700A75B9A /* txt2plate */ = {
 			isa = PBXGroup;
 			children = (
+				FADB503D2B64508C0051FC22 /* txt2plate.entitlements */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -461,8 +463,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = txt2plate/txt2plate.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+<<<<<<< HEAD
 				DEVELOPMENT_TEAM = WFUL278A6X;
+=======
+				DEVELOPMENT_TEAM = "";
+>>>>>>> c1ee373 (feat: notification and bugs)
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = txt2plate/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = txt2plate;
@@ -478,6 +487,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.txt2plate;
 				PRODUCT_NAME = txt2plate;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -490,8 +500,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = txt2plate/txt2plate.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+<<<<<<< HEAD
 				DEVELOPMENT_TEAM = WFUL278A6X;
+=======
+				DEVELOPMENT_TEAM = "";
+>>>>>>> c1ee373 (feat: notification and bugs)
 				INFOPLIST_FILE = txt2plate/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = txt2plate;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -506,6 +523,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.txt2plate;
 				PRODUCT_NAME = txt2plate;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -591,11 +609,15 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
+<<<<<<< HEAD
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-Wl",
 					"-ld_classic",
 				);
+=======
+				OTHER_LDFLAGS = "$(inherited)  ";
+>>>>>>> c1ee373 (feat: notification and bugs)
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -674,11 +696,15 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
+<<<<<<< HEAD
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-Wl",
 					"-ld_classic",
 				);
+=======
+				OTHER_LDFLAGS = "$(inherited)  ";
+>>>>>>> c1ee373 (feat: notification and bugs)
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;

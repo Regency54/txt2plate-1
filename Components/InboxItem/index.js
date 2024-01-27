@@ -12,24 +12,28 @@ import {hp, wp} from '../../Constants/constant';
 import Icon from '../../Constants/Icons';
 import ViewMoreModal from '../ViewMoreModal';
 import ConfirmationDialog from '../ConfirmationDialog';
-import Routes from '../../utils/Routes';
-import {useNavigation} from '@react-navigation/native';
 import moment from 'moment';
-import AppLoading from '../AppLoading';
 import firestore from '@react-native-firebase/firestore';
 import { FirebaseSchema } from '../../Database/FirebaseSchema';
 import storage from '@react-native-firebase/storage';
+import ReplyModal from '../ReplyModal';
 
 
 
 
-const InboxItem = ({data,inbox,getList}) => {
-  const navigation = useNavigation();
+const InboxItem = ({data,inbox,getList,isInbox}) => {
   const [isVisible, setVisible] = useState(false);
+  const [isReply,setReply] = useState(false);
   const [isDialogVisible, setDialogVisible] = useState(false);
   const [isLoading,setLoading] = useState(false);
   //console.log('datetime ' + data?.isReplyAllow);
-  const replyAllow = data?.isReplyAllow;
+  let replyAllow;
+  if (isInbox) {
+     replyAllow = data?.isReplyAllow;
+
+  }else{
+    replyAllow = false;
+  }
   const formattedDateTime = moment(data?.datetime).format('hh:mm A MM/DD/YYYY');
   var username = data?.username;
   if (!replyAllow) {
@@ -62,6 +66,13 @@ const InboxItem = ({data,inbox,getList}) => {
 
   return (
     <>
+    <ReplyModal
+    visible={isReply}
+    onClose={() => {
+      setReply(false);
+    }}
+    vehicle={data?.vehicle_number}
+    />
       <ViewMoreModal
         visible={isVisible}
         onClose={() => {
@@ -115,7 +126,7 @@ const InboxItem = ({data,inbox,getList}) => {
                 Colors ={Colors.TEXT_COLOR}
 
                 onPress={() => {
-                  navigation.navigate(Routes.HOME_SCREEN,{id:data?.vehicle_number});
+                  setReply(true);
                 }}
               />
             </TouchableOpacity>

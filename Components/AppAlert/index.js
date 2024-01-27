@@ -5,7 +5,7 @@ import Colors from '../../Constants/Colors';
 import AppButton from '../AppButton';
 
 
-const AppAlert = ({isVisible,onPress,title,content}) => {
+const AppAlert = ({isVisible,onPress,title,content,isButton}) => {
   return (
     <Modal isVisible={isVisible}>
       <View style={styles.screen}>
@@ -15,10 +15,10 @@ const AppAlert = ({isVisible,onPress,title,content}) => {
         <Text style={styles.desc}>
             {content}
         </Text>
-        <AppButton
+        {isButton?(  <AppButton
         title={'OK'}
         onPress={onPress}
-        />
+        />):(<View style={{marginVertical:10}}/>)}
       </View>
     </Modal>
   )

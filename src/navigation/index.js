@@ -47,7 +47,7 @@ export default Navigation = () => {
             headerShown: false,
           }}>
           <Stack.Screen name={Routes.SPLASH} component={SplashScreen} />
-          <Stack.Screen name={Routes.HOME_SCREEN} component={HomeScreen} />
+          <Stack.Screen name={Routes.DrawerScreen} component={DrawerStack} />
           <Stack.Screen name={Routes.SIGN_IN} component={SignIn} />
           <Stack.Screen name={Routes.SIGN_UP} component={SignUp} />
           <Stack.Screen name={Routes.FORGOT_PASSWORD} component={ForgetPassword} />

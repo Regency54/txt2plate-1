@@ -99,6 +99,7 @@ const PasswordChangeDialog = ({ isVisible, onClose }) => {
    title={alertTitle}
    content={errorText}
    isVisible={isAlert}
+   isButton={true}
    onPress={()=>{
     if (alertTitle == 'Success') {
         onClose();

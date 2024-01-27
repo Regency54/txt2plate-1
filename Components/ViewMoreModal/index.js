@@ -3,21 +3,34 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   Image,
   ScrollView,
+  Linking,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import Colors from '../../Constants/Colors';
 import AppButton from '../AppButton';
-import {toc} from '../../Constants/Appdata';
 
 const ViewMoreModal = ({visible, onClose,item,inbox}) => {
+  const sendEmail = () => {
+    const subject = '';
+    const recipients = ['Admin@txt2plate.co.uk'];
+    const body = '';
+
+    const mailtoUrl = `mailto:${recipients.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    Linking.openURL(mailtoUrl)
+      .then(() => console.log('Opened email app'))
+      .catch((error) => console.error('Error opening email app:', error));
+  };
   return (
     <Modal isVisible={visible}>
       <View style={styles.screen}>
-        <Image style={styles.img} required source={{uri: item.img_url}} />
-
+      {item.img_url ? (
+  <Image style={styles.img} source={{ uri: item.img_url }} />
+) : (
+  <Image style={styles.img} source={require('../../src/Images/logo.jpg')} />
+)}
         <View style={{height: '40%', padding: 5}}>
           <ScrollView>
             <Text style={styles.lable}>{item?.message}</Text>
@@ -33,7 +46,7 @@ const ViewMoreModal = ({visible, onClose,item,inbox}) => {
             <AppButton
               title={'Report'}
               containerStyle={styles.btn}
-              onPress={onClose}
+              onPress={sendEmail}
             />
           ) : null}
           <AppButton

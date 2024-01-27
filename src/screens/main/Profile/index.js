@@ -212,7 +212,7 @@ const Proile = () => {
       ) : null}
       {isLoading ? <AppLoading isVisible={isLoading} /> : null}
       {isAppAlert ? (
-        <AppAlert title={'Error'} content={AppStrings.TOC_ERROR} />
+        <AppAlert title={'Error'} content={AppStrings.TOC_ERROR} isButton={true} />
       ) : null}
       {passwordDialog ? (
         <PasswordChangeDilalog isVisible={passwordDialog} onClose={onClose} />

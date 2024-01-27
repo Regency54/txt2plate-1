@@ -18,4 +18,5 @@ export const AppStrings ={
     VEHICLE:"Vehicle number already exists",
     CHOOSE_FILE:"Choose file'",
     NO_FILE_SELECTED:"no file selected'",
+    FCM_SERVER_KEY:"AAAA2dCY7KU:APA91bFm94rRRk33fuwyyCyyLSPYkNwsAYn1R4Zdu47czJitAX4O-C0QCEnq0wWY-M-ihBowBRV-E_QH5afpG51F0u7SukqzvV3O3GM4BAGTV5YFrCfhNXjj1wxYCNqyi6Qv-0QXDyrx"
 }
